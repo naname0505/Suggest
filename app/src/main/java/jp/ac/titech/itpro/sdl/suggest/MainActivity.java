@@ -8,11 +8,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Xml;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 
 import org.xmlpull.v1.XmlPullParser;
 
@@ -23,9 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
     private EditText inputText;
+    private TextView outputView;
     private ArrayAdapter<String> resultAdapter;
+    private final static String KEY_NAME = "MainActivity.name";
+    public String textwords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String queryText = inputText.getText().toString().trim();
+                textwords = queryText;
                 new SuggestThread(queryText).start();
             }
         });
@@ -55,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        if(savedInstanceState != null){
+            textwords = savedInstanceState.getString(KEY_NAME);
+        }
     }
 
     private final static int MSG_RESULT = 1111;
@@ -118,7 +127,23 @@ public class MainActivity extends AppCompatActivity {
             }
             if (result.size() == 0)
                 result.add(getString(R.string.no_suggestions));
-            handler.sendMessage(handler.obtainMessage(MSG_RESULT, result));
+                handler.sendMessage(handler.obtainMessage(MSG_RESULT, result));
         }
     }
+
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(textwords != null) {
+            new SuggestThread(textwords).start();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        super.onSaveInstanceState(outState);
+        outState.putString(KEY_NAME, textwords);
+    }
+
 }
